@@ -1,0 +1,165 @@
+/* Boxes Styles */
+.table-box {
+    margin-bottom: 10px;
+}
+.table-box {
+    background: #ffffff;
+    border: 1px solid #DEE1E2;
+}
+
+/* HEADER */
+
+.table-box .table-header-wrapper {
+    height: 26px;
+    padding: 4px 5px 2px;
+    font-size: 15px;
+}
+.table-box .table-header-wrapper {
+    border-bottom: 2px solid #cccccc;
+}
+.table-box .table-header-wrapper .title {
+    padding: 0 6px 2px;
+}
+.table-box .table-header-wrapper .title {
+    color: #2C3E50;
+}
+.table-box .table-header-wrapper .control-icons {
+    padding: 0 4px 2px;
+}
+.table-box .table-header-wrapper .control-icons a {
+    padding: 0 4px 0;
+}
+.table-box .table-header-wrapper .control-icons .minus{
+    color: #FDBD41;
+}
+.table-box .table-header-wrapper .control-icons .expand{
+    color: #34C84A;
+}
+.table-box .table-header-wrapper .control-icons .external-link {
+    font-size: 8px;
+    margin-top:-6px;
+    color: #34C84A;
+}
+.table-box .table-header-wrapper .control-icons .external-link .fa-inverse {
+    color: #FFFFFF;
+}
+
+/* FILTER */
+
+.table-box .table-filter-wrapper {
+    padding: 5px 0 5px;
+    height: 33px;
+}
+.table-box .table-filter-wrapper {
+    border-bottom: 1px solid #cccccc;
+}
+.table-box .table-filter-wrapper input[type="text"] {
+    height: 22px;
+}
+.table-box .table-filter-wrapper input[type="text"] {
+    color: #2C3E50;
+    background-color: #EFEFEF;
+    border-color: #BFBFBF;
+}
+.table-box .table-filter-wrapper .search-clear {
+    position: absolute;
+    right: 20px;
+    top: 0;
+    bottom: 0;
+    height: 14px;
+    margin: auto;
+    font-size: 14px;
+    cursor: pointer;
+}
+.table-box .table-filter-wrapper .search-clear {
+    color: #BABABA;
+}
+.table-box .table-filter-wrapper .btn-group .btn {
+    background-color: #ffffff;
+    color: #333333;
+    border-color: #BFBFBF;
+}
+.table-box .table-filter-wrapper .btn-group .btn:hover {
+    background-color: #EFEFEF;
+}
+
+/* BODY */
+
+.table-box .table-body-wrapper {
+    overflow: auto;
+    width: 100%;
+}
+.table-box .sort-column {
+    cursor: pointer;
+}
+.table-box .table-hover > tbody > tr:hover {
+    background-color: #f5f5f5;
+}
+.table-box .table-body-wrapper table thead th {
+    color: #95A5A6;
+}
+.table-box .table-body-wrapper table > thead > tr > th {
+    border-bottom: 1px solid #9B9B9B;
+}
+.table-box .table-body-wrapper table > tbody > tr > th,
+.table-box .table-body-wrapper table > tfoot > tr > th,
+.table-box .table-body-wrapper table > thead > tr > td,
+.table-box .table-body-wrapper table > tfoot > tr > td {
+    border-top: 1px solid #DEE1E2;
+}
+.table-box .table-body-wrapper table tbody {
+    color: #7F8C8D;
+}
+.table-box table tbody .row-select,
+.table-box table tbody .row-select:hover {
+    background-color: #D5D5D5 !important;
+    color: #000000;
+}
+.table-box .table-body-wrapper table > thead > tr > th,
+.table-box .table-body-wrapper table > tbody > tr > th,
+.table-box .table-body-wrapper table > tfoot > tr > th,
+.table-box .table-body-wrapper table > thead > tr > td,
+.table-box .table-body-wrapper table > tbody > tr > td,
+.table-box .table-body-wrapper table > tfoot > tr > td {
+    line-height: inherit;
+    vertical-align: middle;
+}
+.table-box .table-body-wrapper table tbody tr.child td:first-child {
+    padding-left: 25px;
+}
+.table-box table tbody span {
+    font-family: inherit;
+}
+.table-box table tbody td a.switch-link {
+    font-size: 19px;
+}
+.table-box table tbody tr.totals td,
+.table-box table tbody tr.totals span {
+    font-weight: 600;
+}
+.table-box .table-body-wrapper table tbody tr.totals td,
+.table-box .table-body-wrapper table tbody tr.totals span {
+    color: #7A8485;
+}
+.table-box table tbody tr.parent td:first-child a {
+    cursor: pointer;
+}
+.table-box table tbody tr.parent td:first-child a {
+    color: #3498DB;
+}
+.table-box table tbody span.losing {
+    color: #EE3524;
+}
+.table-box table tbody span.winning {
+    color: #008A00;
+}
+.table-box table tbody td a.switch-link {
+    color: #95A5A6;
+}
+.table-box table tbody td a.switch-link.on {
+    color: #5CB85C;
+}
+
+
+
+
