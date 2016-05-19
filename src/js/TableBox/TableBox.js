@@ -6,23 +6,56 @@ import React, {Component, PropTypes} from 'react';
 
 import './../../css/table-box.css';
 
+import Const from './Const'
 import TableDataStore from './store/TableDataStore'
 import TableBody from './TableBody'
 import TableFilter from './TableFilter'
 import TableHeader from './TableHeader'
+import PaginationList from './pagination/PaginationList'
 
 class TableBox extends Component {
 
     constructor(props) {
         super(props);
-        this.store = new TableDataStore(this.props.data);
+        this.store = new TableDataStore(this.props.data.slice());
+
+        this.initTable(this.props);
+
         this.state = {
-            data: this.store.getAll(),
+            data: this.getTableData(),
             isCollapsed: this.props.isCollapsed,
-            searchValue: this.props.searchValue
+            searchValue: this.props.searchValue,
+            currPage: this.props.options.page || 1,
+            sizePerPage: this.props.options.sizePerPage || Const.SIZE_PER_PAGE_LIST[0]
         };
 
         this.getData = this.getData.bind(this);
+    }
+
+    initTable(props){
+        this.store.setProps({
+            isPagination: props.pagination
+        });
+    }
+
+    getTableData() {
+        let result = [];
+        const { options, pagination } = this.props;
+        if (pagination) {
+            let page;
+            let sizePerPage;
+            if (this.store.isChangedPage()) {
+                sizePerPage = this.state.sizePerPage;
+                page = this.state.currPage;
+            } else {
+                sizePerPage = options.sizePerPage || Const.SIZE_PER_PAGE_LIST[0];
+                page = options.page || 1;
+            }
+            result = this.store.page(page, sizePerPage).get();
+        } else {
+            result = this.store.get();
+        }
+        return result;
     }
 
     componentWillMount() {
@@ -33,17 +66,32 @@ class TableBox extends Component {
         this.store.removeListener("change", this.getData);
     }
 
-    getData(){
+    componentWillReceiveProps(nextProps){
+        this.initTable(nextProps);
+        const { options } = nextProps;
+
+        this.store.setData(nextProps.data.slice());
+        let page = options.page || this.state.currPage;
+        const sizePerPage = options.sizePerPage || this.state.sizePerPage;
+
+        if (!options.page &&
+            page >= Math.ceil(nextProps.data.length / sizePerPage)) {
+            page = 1;
+        }
+
+        const data = this.store.page(page, sizePerPage).get();
         this.setState({
-            data: this.store.getAll()
-        })
+            data,
+            isCollapsed: nextProps.isCollapsed,
+            searchValue: nextProps.searchValue,
+            currPage: page,
+            sizePerPage
+        });
     }
 
-    componentWillReceiveProps(nextProps){
-        this.store.setData(nextProps.data);
+    getData(){
         this.setState({
-            isCollapsed: nextProps.isCollapsed,
-            searchValue: nextProps.searchValue
+            data: this.getTableData()
         })
     }
 
@@ -79,6 +127,20 @@ class TableBox extends Component {
         }
     }
 
+    handlePaginationData(page, sizePerPage) {
+        const { onPageChange } = this.props.options;
+        if (onPageChange) {
+            onPageChange(page, sizePerPage);
+        }
+
+        const result = this.store.page(page, sizePerPage).get();
+        this.setState({
+            data: result,
+            currPage: page,
+            sizePerPage
+        });
+    }
+
     getColumnsDescription({children}) {
         return React.Children.map(children, (column, i) => {
             return {
@@ -93,8 +155,35 @@ class TableBox extends Component {
         });
     }
 
+    renderPagination(){
+        if (this.props.pagination) {
+            const dataSize = this.store.getDataNum();
+            const { options } = this.props;
+            return (
+                <div className='table-pagination-wrapper'>
+                    <PaginationList
+                        ref='pagination'
+                        changePage={ this.handlePaginationData.bind(this) }
+                        currPage={ this.state.currPage }
+                        dataSize={ dataSize }
+                        firstPage={ options.firstPage }
+                        lastPage={ options.lastPage }
+                        nextPage={ options.nextPage }
+                        onSizePerPageList={ options.onSizePerPageList }
+                        paginationSize={ options.paginationSize }
+                        prePage={ options.prePage }
+                        sizePerPage={ this.state.sizePerPage }
+                        sizePerPageList={ options.sizePerPageList } />
+                </div>
+            );
+        }
+
+        return null;
+    }
+
     render() {
         const columns = this.getColumnsDescription(this.props);
+        const pagination = this.renderPagination();
         const style = {
             height: this.props.height,
             maxHeight: this.props.maxHeight
@@ -135,6 +224,7 @@ class TableBox extends Component {
                     style={ style }>
                     { this.props.children }
                 </TableBody>
+                { pagination }
             </div>
         )
     }
@@ -151,15 +241,28 @@ TableBox.propTypes = {
     height: PropTypes.string,
     hover: PropTypes.bool,
     isCollapsed: PropTypes.bool,
-    onCollapse: PropTypes.func,
-    noDataText: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     maxHeight: PropTypes.string,
+    noDataText: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    onCollapse: PropTypes.func,
+    options: PropTypes.shape({
+        firstPage: PropTypes.string,
+        lastPage: PropTypes.string,
+        nextPage: PropTypes.string,
+        onPageChange: PropTypes.func,
+        onSizePerPageList: PropTypes.func,
+        page: PropTypes.number,
+        paginationSize: PropTypes.number,
+        prePage: PropTypes.string,
+        sizePerPage: PropTypes.number,
+        sizePerPageList: PropTypes.array
+    }),
+    pagination: PropTypes.bool,
     renderCollapse: PropTypes.bool,
     renderMaximize: PropTypes.bool,
     searchValue: PropTypes.string,
     selectRow: PropTypes.shape({
-        selected: PropTypes.number,
-        onRowClick: PropTypes.func
+        onRowClick: PropTypes.func,
+        selected: PropTypes.number
     }),
     striped: PropTypes.bool,
     title: PropTypes.string
@@ -175,9 +278,22 @@ TableBox.defaultProps = {
     height: '100%',
     hover: false,
     isCollapsed: false,
-    onCollapse: undefined,
-    noDataText: undefined,
     maxHeight: undefined,
+    noDataText: undefined,
+    onCollapse: undefined,
+    options: {
+        firstPage: Const.FIRST_PAGE,
+        lastPage: Const.LAST_PAGE,
+        nextPage: Const.NEXT_PAGE,
+        onPageChange: undefined,
+        onSizePerPageList: undefined,
+        page: undefined,
+        paginationSize: Const.PAGINATION_SIZE,
+        prePage: Const.PRE_PAGE,
+        sizePerPage: undefined,
+        sizePerPageList: Const.SIZE_PER_PAGE_LIST
+    },
+    pagination: false,
     renderCollapse: true,
     renderMaximize: true,
     searchValue: "",

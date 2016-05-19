@@ -92,6 +92,9 @@
 .table-box .sort-column {
     cursor: pointer;
 }
+.table-box .table-body-wrapper table {
+    margin-bottom: 0;
+}
 .table-box .table-hover > tbody > tr:hover {
     background-color: #f5f5f5;
 }
@@ -160,6 +163,18 @@
     color: #5CB85C;
 }
 
+/* PAGINATION */
 
+.table-pagination-wrapper {
+    border-top: 1px solid #DEE1E2;
+    padding: 4px 10px 0;
+}
 
+.table-pagination-wrapper .pagination {
+    margin: 5px 0;
+}
 
+.table-pagination-wrapper .pagination-xs > li > a,
+.table-pagination-wrapper .pagination-xs > li > span {
+    padding: 1px 5px;
+}
