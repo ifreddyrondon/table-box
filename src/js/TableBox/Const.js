@@ -11,7 +11,7 @@ export default {
     PRE_PAGE: '<',
     ROW_SELECT_CLASS_NAME: 'row-select',
     SIZE_PER_PAGE: 10,
-    SIZE_PER_PAGE_LIST: [ 10, 25, 30, 50 ],
+    SIZE_PER_PAGE_LIST: [ 5, 10, 25, 30, 50 ],
     SORT_ASC: 'asc',
     SORT_DESC: 'desc'
 };
