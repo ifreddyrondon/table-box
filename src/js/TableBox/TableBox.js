@@ -156,7 +156,7 @@ class TableBox extends Component {
     }
 
     renderPagination(){
-        if (this.props.pagination) {
+        if (this.props.pagination && this.state.data.length > 0) {
             const dataSize = this.store.getDataNum();
             const { options } = this.props;
             return (

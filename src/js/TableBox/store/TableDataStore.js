@@ -28,7 +28,7 @@ export default class TableDataStore extends EventEmitter {
     }
 
     get(){
-        if (!this.enablePagination) {
+        if (!this.enablePagination || this.data.length === 0) {
             return this.data;
         } else {
             let result = [];
