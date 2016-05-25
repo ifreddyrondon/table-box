@@ -166,14 +166,14 @@ class TableBox extends Component {
                         changePage={ this.handlePaginationData.bind(this) }
                         currPage={ this.state.currPage }
                         dataSize={ dataSize }
-                        firstPage={ options.firstPage }
-                        lastPage={ options.lastPage }
-                        nextPage={ options.nextPage }
+                        firstPage={ options.firstPage || Const.FIRST_PAGE }
+                        lastPage={ options.lastPage || Const.LAST_PAGE }
+                        nextPage={ options.nextPage || Const.NEXT_PAGE}
                         onSizePerPageList={ options.onSizePerPageList }
-                        paginationSize={ options.paginationSize }
-                        prePage={ options.prePage }
+                        paginationSize={ options.paginationSize || Const.PAGINATION_SIZE }
+                        prePage={ options.prePage || Const.PRE_PAGE }
                         sizePerPage={ this.state.sizePerPage }
-                        sizePerPageList={ options.sizePerPageList } />
+                        sizePerPageList={ options.sizePerPageList || Const.SIZE_PER_PAGE_LIST } />
                 </div>
             );
         }
