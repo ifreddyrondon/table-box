@@ -34,7 +34,8 @@ class TableBox extends Component {
 
     initTable(props){
         this.store.setProps({
-            isPagination: props.pagination
+            isPagination: props.pagination,
+            hasParent: props.hasParent
         });
     }
 
