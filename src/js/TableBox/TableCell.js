@@ -6,6 +6,7 @@ import React, {Component, PropTypes} from 'react';
 import {Sparklines, SparklinesLine, SparklinesSpots} from 'react-sparklines';
 import ReactHighstock from 'react-highcharts';
 import {Modal} from 'react-bootstrap';
+import Moment from 'moment'
 import classSet from 'classnames'
 
 class TableCell extends Component {
@@ -36,6 +37,9 @@ class TableCell extends Component {
     renderCellValue(value, type) {
         if (type === "number" || type === "currency") {
             value = value.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
+        }
+        if (type === "date") {
+            value = Moment(value).format()
         }
         if (type === "currency") {
             value = '<i class="fa fa-usd"></i>' + value;

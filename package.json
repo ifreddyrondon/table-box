@@ -28,6 +28,7 @@
     "babel-runtime": "^6.6.1",
     "classnames": "^2.2.5",
     "highcharts": "^4.2.5",
+    "moment": "^2.13.0",
     "react": "^15.0.1",
     "react-bootstrap": "^0.28.5",
     "react-dom": "^15.0.1",
