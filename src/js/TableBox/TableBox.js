@@ -157,9 +157,10 @@ class TableBox extends Component {
     }
 
     renderPagination(){
-        if (this.props.pagination && this.state.data.length > 0) {
-            const dataSize = this.store.getDataNum();
-            const { options } = this.props;
+        const { options } = this.props;
+        const sizePerPageList = options.sizePerPageList || Const.SIZE_PER_PAGE_LIST;
+        const dataSize = this.store.getDataNum();
+        if (this.props.pagination && dataSize > sizePerPageList[0]) {
             return (
                 <div className='table-pagination-wrapper'>
                     <PaginationList
@@ -174,7 +175,7 @@ class TableBox extends Component {
                         paginationSize={ options.paginationSize || Const.PAGINATION_SIZE }
                         prePage={ options.prePage || Const.PRE_PAGE }
                         sizePerPage={ this.state.sizePerPage }
-                        sizePerPageList={ options.sizePerPageList || Const.SIZE_PER_PAGE_LIST } />
+                        sizePerPageList={ sizePerPageList } />
                 </div>
             );
         }
