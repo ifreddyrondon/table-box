@@ -36,14 +36,28 @@ class TableCell extends Component {
 
     renderCellValue(value, type) {
         if (type === "number" || type === "currency") {
-            value = value.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
+            value = +value;
+            if (Number.isNaN(value)){
+                value = ""
+            } else {
+                if (value < 1 && value > 0){
+                    value = String(value)
+                } else {
+                    value = value.toFixed(2)
+                }
+                value = value.replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
+            }
         }
         if (type === "date") {
             value = Moment(value).format()
         }
         if (type === "currency") {
-            value = '<i class="fa fa-usd"></i>' + value;
-            value = <div dangerouslySetInnerHTML={ { __html: value } }></div>
+            if (value === ""){
+                value = ""
+            } else {
+                value = '<i class="fa fa-usd"></i>' + value;
+                value = <div dangerouslySetInnerHTML={ { __html: value } }></div>
+            }
         }
         if (type === "p_l") {
             let classes = '';
