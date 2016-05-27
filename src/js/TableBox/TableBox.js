@@ -128,6 +128,12 @@ class TableBox extends Component {
         }
     }
 
+    handleTotalRowClick(){
+        if (this.props.selectRow.onTotalRowClick) {
+            this.props.selectRow.onTotalRowClick();
+        }
+    }
+
     handlePaginationData(page, sizePerPage) {
         const { onPageChange } = this.props.options;
         if (onPageChange) {
@@ -220,6 +226,7 @@ class TableBox extends Component {
                     hover={ this.props.hover }
                     noDataText={ this.props.noDataText }
                     onRowClick={ this.handleRowClick.bind(this) }
+                    onTotalRowClick={ this.handleTotalRowClick.bind(this) }
                     searchValue={this.state.searchValue}
                     selectRow={ this.props.selectRow }
                     striped={ this.props.striped }
@@ -264,6 +271,7 @@ TableBox.propTypes = {
     searchValue: PropTypes.string,
     selectRow: PropTypes.shape({
         onRowClick: PropTypes.func,
+        onTotalRowClick: PropTypes.func,
         selected: PropTypes.number
     }),
     striped: PropTypes.bool,
@@ -300,7 +308,8 @@ TableBox.defaultProps = {
     renderMaximize: true,
     searchValue: "",
     selectRow: {
-        onRowClick: undefined
+        onRowClick: undefined,
+        onTotalRowClick: undefined
     },
     striped: false,
     title: ''

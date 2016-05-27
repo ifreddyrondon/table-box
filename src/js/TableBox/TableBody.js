@@ -163,6 +163,9 @@ class TableBody extends Component {
 
     renderTableTotals() {
         if (this.props.hasTotals) {
+            const isSelectRowDefined = this._isSelectRowDefined();
+            const selected = isSelectRowDefined && this.state.rowSelected == 'total';
+
             return (
                 <TableRow
                     key="##table-totals##"
@@ -171,7 +174,9 @@ class TableBody extends Component {
                     data={this._getTotals()}
                     isParent={false}
                     isOn={this.state['row-total'].isOn}
-                    handleSwitchChildren={this.handleSwitchTotal.bind(this)}/>
+                    handleSwitchChildren={this.handleSwitchTotal.bind(this)}
+                    onRowClick={ this.handleTotalRowClick.bind(this) }
+                    selected={selected}/>
             );
         }
 
@@ -355,6 +360,15 @@ class TableBody extends Component {
         }
     }
 
+    handleTotalRowClick(){
+        if (this._isSelectRowDefined()) {
+            this.setState({
+                rowSelected: 'total'
+            });
+            this.props.onTotalRowClick();
+        }
+    }
+
     render() {
         const filteredData = this._filterData();
 
@@ -395,8 +409,7 @@ class TableBody extends Component {
                     handleSwitchParent={this.handleSwitchParent.bind(this)}
                     handleSwitchChildren={this.handleSwitchChildren.bind(this)}
                     onRowClick={ this.handleRowClick.bind(this) }
-                    selected={selected}
-                    selectRow={ this.props.selectRow }/>
+                    selected={selected} />
             )
         });
 
