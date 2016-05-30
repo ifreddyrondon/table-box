@@ -41,7 +41,7 @@ class TableCell extends Component {
                 value = ""
             } else {
                 if (value < 1 && value > 0){
-                    value = String(value)
+                    value = "." + (value + "").split(".")[1];
                 } else {
                     value = value.toFixed(2)
                 }
