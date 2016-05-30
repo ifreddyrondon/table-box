@@ -44,7 +44,7 @@ class TableRow extends Component {
         } else {
             this.props.handleSwitchChildren(this.props._key);
         }
-        
+
     }
 
     rowClick(){
@@ -52,18 +52,18 @@ class TableRow extends Component {
             this.props.onRowClick(this.props._key);
         }
     }
-    
+
     render() {
         const cells = this.props.columns.map(function (cell, i) {
             const fieldValue = this.props.data[cell.name];
             let columnChild = fieldValue;
             let tdClassName = cell.className;
             if (isFun(cell.className)) {
-                tdClassName = cell.className(fieldValue, data, r, i);
+                tdClassName = cell.className(fieldValue, cell, r, i);
             }
 
             if (typeof cell.format !== 'undefined') {
-                const formattedValue = column.format(fieldValue, data);
+                const formattedValue = cell.format(fieldValue, cell);
                 if (!React.isValidElement(formattedValue)) {
                     columnChild = (
                         <div dangerouslySetInnerHTML={ { __html: formattedValue } }></div>
