@@ -21,8 +21,9 @@ class TableFilter extends Component {
         this.props.onSearch(this.refs.seachInput.value);
     }
 
-    handleBtnClick() {
-        this.props.onSearch(this.refs.seachInput.value);
+    handleBtnClick(evt) {
+        this.refs.seachInput.value = evt.target.value;
+        this.props.onSearch(evt.target.value);
     }
 
 
