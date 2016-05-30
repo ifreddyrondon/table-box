@@ -24,7 +24,6 @@ class TableBox extends Component {
         this.state = {
             data: this.getTableData(),
             isCollapsed: this.props.isCollapsed,
-            searchValue: this.props.searchValue,
             currPage: this.props.options.page || 1,
             sizePerPage: this.props.options.sizePerPage || Const.SIZE_PER_PAGE_LIST[0]
         };
@@ -84,7 +83,6 @@ class TableBox extends Component {
         this.setState({
             data,
             isCollapsed: nextProps.isCollapsed,
-            searchValue: nextProps.searchValue,
             currPage: page,
             sizePerPage
         });
@@ -110,16 +108,29 @@ class TableBox extends Component {
         this.props.onMaximize()
     }
 
-    handleUpdateSearchFilter(value) {
-        this.setState({
-            searchValue: value
-        })
-    }
+    handleSearch(searchText) {
+        this.store.search(searchText);
+        let result;
+        if (this.props.pagination) {
+            const { sizePerPage } = this.state;
+            result = this.store.page(1, sizePerPage).get();
 
-    handleClearSearchField() {
+            const { onPageChange } = this.props.options;
+            if (onPageChange) {
+                onPageChange(1, sizePerPage);
+            }
+
+        } else {
+            result = this.store.get();
+        }
+        if (this.props.options.afterSearch) {
+            this.props.options.afterSearch(searchText,
+                this.store.getDataIgnoringPagination());
+        }
         this.setState({
-            searchValue: ""
-        })
+            data: result,
+            currPage: 1
+        });
     }
 
     handleRowClick(row){
@@ -138,14 +149,14 @@ class TableBox extends Component {
         const { onPageChange } = this.props.options;
         if (onPageChange) {
             onPageChange(page, sizePerPage);
+        } else {
+            const result = this.store.page(page, sizePerPage).get();
+            this.setState({
+                data: result,
+                currPage: page,
+                sizePerPage
+            });
         }
-
-        const result = this.store.page(page, sizePerPage).get();
-        this.setState({
-            data: result,
-            currPage: page,
-            sizePerPage
-        });
     }
 
     getColumnsDescription({children}) {
@@ -208,26 +219,22 @@ class TableBox extends Component {
                     renderMaximize={this.props.renderMaximize}/>
                 <TableFilter
                     btn={this.props.filterBtn}
-                    handleUpdateSearchFilter={this.handleUpdateSearchFilter.bind(this)}
-                    handleBtnClick={this.handleUpdateSearchFilter.bind(this)}
-                    handleClearSearchField={this.handleClearSearchField.bind(this)}
+                    onSearch={this.handleSearch.bind(this)}
                     hasFilter={this.props.filter}
-                    hidden={this.state.isCollapsed}
-                    searchValue={this.state.searchValue}/>
+                    hidden={this.state.isCollapsed}/>
                 <TableBody
                     bordered={ this.props.bordered }
                     columns={ columns }
                     condensed={ this.props.condensed }
                     data={ this.state.data }
-                    hasFilter={this.props.filter}
                     hasParent={ this.props.hasParent }
                     hasTotals={ this.props.hasTotals }
                     hidden={this.state.isCollapsed}
                     hover={ this.props.hover }
+                    isDataOnFilter={ this.store.isOnFilter }
                     noDataText={ this.props.noDataText }
                     onRowClick={ this.handleRowClick.bind(this) }
                     onTotalRowClick={ this.handleTotalRowClick.bind(this) }
-                    searchValue={this.state.searchValue}
                     selectRow={ this.props.selectRow }
                     striped={ this.props.striped }
                     style={ style }>
@@ -254,6 +261,7 @@ TableBox.propTypes = {
     noDataText: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     onCollapse: PropTypes.func,
     options: PropTypes.shape({
+        afterSearch: PropTypes.func,
         firstPage: PropTypes.string,
         lastPage: PropTypes.string,
         nextPage: PropTypes.string,
@@ -292,6 +300,7 @@ TableBox.defaultProps = {
     noDataText: undefined,
     onCollapse: undefined,
     options: {
+        afterSearch: undefined,
         firstPage: Const.FIRST_PAGE,
         lastPage: Const.LAST_PAGE,
         nextPage: Const.NEXT_PAGE,

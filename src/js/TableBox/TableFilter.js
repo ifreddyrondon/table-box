@@ -10,34 +10,21 @@ class TableFilter extends Component {
 
     constructor() {
         super();
-        this.state = {
-            showSearchClear: false
-        }
     }
 
-    componentWillReceiveProps(nextProps){
-        if (nextProps.searchValue === ""){
-            this.setState({
-                showSearchClear: false
-            })
-        } else {
-            this.setState({
-                showSearchClear: true
-            })
-        }
+    handleClearBtnClick() {
+        this.refs.seachInput.value = '';
+        this.props.onSearch('');
     }
 
-    handleClearSearchField() {
-        this.props.handleClearSearchField()
+    handleKeyUp() {
+        this.props.onSearch(this.refs.seachInput.value);
     }
 
-    handleBtnClick(evt) {
-        this.props.handleBtnClick(evt.target.value);
+    handleBtnClick() {
+        this.props.onSearch(this.refs.seachInput.value);
     }
 
-    updateSearchInput(evt) {
-        this.props.handleUpdateSearchFilter(evt.target.value);
-    }
 
     getFilterBtn() {
         if (this.props.btn.length > 0) {
@@ -60,6 +47,13 @@ class TableFilter extends Component {
         return ''
     }
 
+    _renderClearBtn(){
+        if (this.refs.seachInput && this.refs.seachInput.value !== ""){
+            return true
+        }
+        return false
+    }
+
     render() {
         const containerClasses = classSet('table-filter-wrapper', {
             'hidden': !this.props.hasFilter || this.props.hidden
@@ -77,17 +71,24 @@ class TableFilter extends Component {
 
         const clearSearchFieldClass = classSet(
             'search-clear', 'glyphicon', 'glyphicon-remove-circle', {
-            'hidden': !this.state.showSearchClear
-        });
+                'hidden': !this._renderClearBtn()
+            });
+
+        const clearBtn = (
+            <span onClick={this.handleClearBtnClick.bind(this)} className={clearSearchFieldClass}></span>
+        );
 
         const filterButtons = this.getFilterBtn();
         return (
             <div ref="container" className={containerClasses}>
                 <div className="form-group form-group-sm">
                     <div className={filterInputClass}>
-                        <input type="text" className="form-control" placeholder="filter" ref="search-input"
-                               onChange={this.updateSearchInput.bind(this)} value={this.props.searchValue}/>
-                        <span onClick={this.handleClearSearchField.bind(this)} className={clearSearchFieldClass}></span>
+                        <input ref="seachInput"
+                               type="text"
+                               className="form-control"
+                               placeholder={ this.props.searchPlaceholder ? this.props.searchPlaceholder : 'Search' }
+                               onKeyUp={ this.handleKeyUp.bind(this) }/>
+                        {clearBtn}
                     </div>
                     <div className={filterBtnClass}>
                         {filterButtons}

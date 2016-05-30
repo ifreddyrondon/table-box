@@ -14,7 +14,7 @@ class TableBody extends Component {
         super();
     }
 
-    _setRowState(rows){
+    _setRowState(rows) {
         // set the state for each row
         var parentId = null;
         rows.forEach((data, i) => {
@@ -22,6 +22,7 @@ class TableBody extends Component {
             if (!isChild) {
                 parentId = i;
             }
+
             this.setState({
                 ['row-' + i]: {
                     type: isChild ? 'child' : 'parent',
@@ -32,10 +33,6 @@ class TableBody extends Component {
                 }
             });
         });
-
-        this.setState({
-            dataLength: rows.length
-        })
     }
 
     componentWillMount() {
@@ -59,20 +56,9 @@ class TableBody extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        // change the state for each row if the data change
-        if (this.state.dataLength !== nextProps.data.length){
-            this._setRowState(nextProps.data);
-        }
+        this._setRowState(nextProps.data);
 
-        if(!this.props.hasFilter || this._isSelectRowDefined()){
-            return
-        }
-
-        if (this.props.searchValue === nextProps.searchValue){
-            return
-        }
-
-        if (nextProps.searchValue !== "") {
+        if (nextProps.isDataOnFilter) {
             this._showAllRows()
         } else {
             this._hideChildren()
@@ -305,27 +291,6 @@ class TableBody extends Component {
         });
     }
 
-    _filterData() {
-        let filteredData = [];
-        for (let i = 0; i < this.props.data.length; i++) {
-            let data = this.props.data[i];
-            data.key = i;
-
-            const dataValues = Object.keys(data).map(key => String(data[key]));
-            const filteredItem = dataValues.filter((item) => {
-                return item.toLowerCase().indexOf(this.props.searchValue.toLowerCase()) !== -1;
-            });
-
-            if (filteredItem.length === 0) {
-                continue
-            }
-
-            filteredData.push(data);
-        }
-
-        return filteredData
-    }
-
     _attachClearSortCaretFunc() {
         const {children} = this.props;
         for (let i = 0; i < this.props.children.length; i++) {
@@ -349,18 +314,20 @@ class TableBody extends Component {
         // });
     }
 
-    handleRowClick(rowIndex){
+    handleRowClick(rowIndex) {
         if (this._isSelectRowDefined()) {
             this.setState({
                 rowSelected: rowIndex
             });
-            const { data, onRowClick } = this.props;
-            const selectedRow = data.filter((row, i) => { return i === rowIndex });
+            const {data, onRowClick} = this.props;
+            const selectedRow = data.filter((row, i) => {
+                return i === rowIndex
+            });
             onRowClick(selectedRow[0]);
         }
     }
 
-    handleTotalRowClick(){
+    handleTotalRowClick() {
         if (this._isSelectRowDefined()) {
             this.setState({
                 rowSelected: 'total'
@@ -370,8 +337,6 @@ class TableBody extends Component {
     }
 
     render() {
-        const filteredData = this._filterData();
-
         const tableClasses = classSet('table', {
             'hidden': this.props.hidden,
             'table-striped': this.props.striped,
@@ -384,7 +349,7 @@ class TableBody extends Component {
         const tableHeader = this.renderTableHeader();
         const tableTotals = this.renderTableTotals();
 
-        const tableRows = filteredData.map((data, i) => {
+        const tableRows = this.props.data.map((data, i) => {
             // check if parent or child
             const isChild = data['child'] || false;
             const isParent = !isChild && this.props.hasParent;
@@ -397,19 +362,19 @@ class TableBody extends Component {
 
             return (
                 <TableRow
-                    key={ data.key }
-                    _key={ data.key }
+                    key={ i }
+                    _key={ i }
                     className={ trClassName }
                     columns={this.props.columns}
                     data={data}
                     isParent={isParent}
-                    shouldHide={this.state['row-' + data.key].shouldHide}
+                    shouldHide={this.state['row-' + i].shouldHide}
                     handleToggleParent={this.handleToggleParent.bind(this)}
-                    isOn={this.state['row-' + data.key].isOn}
+                    isOn={this.state['row-' + i].isOn}
                     handleSwitchParent={this.handleSwitchParent.bind(this)}
                     handleSwitchChildren={this.handleSwitchChildren.bind(this)}
                     onRowClick={ this.handleRowClick.bind(this) }
-                    selected={selected} />
+                    selected={selected}/>
             )
         });
 
@@ -454,6 +419,7 @@ TableBody.propTypes = {
     bordered: PropTypes.bool,
     hasParent: PropTypes.bool,
     hover: PropTypes.bool,
+    isDataOnFilter: PropTypes.bool,
     condensed: PropTypes.bool,
     noDataText: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     onSelectRow: PropTypes.func,
