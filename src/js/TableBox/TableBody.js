@@ -56,7 +56,13 @@ class TableBody extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this._setRowState(nextProps.data);
+        if (this.props.data.length !== nextProps.data.length) {
+            this._setRowState(nextProps.data);
+        }
+
+        if(this._isSelectRowDefined()){
+            return
+        }
 
         if (nextProps.isDataOnFilter) {
             this._showAllRows()
