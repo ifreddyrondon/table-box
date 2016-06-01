@@ -60,7 +60,7 @@ class TableBody extends Component {
             this._setRowState(nextProps.data);
         }
 
-        if(this._isSelectRowDefined()){
+        if (this._isSelectRowDefined()) {
             return
         }
 
@@ -157,11 +157,14 @@ class TableBody extends Component {
         if (this.props.hasTotals) {
             const isSelectRowDefined = this._isSelectRowDefined();
             const selected = isSelectRowDefined && this.state.rowSelected == 'total';
+            const totalClass = classSet('totals', {
+                'total-underline': this.props.hasTotalsOptions.underline
+            });
 
             return (
                 <TableRow
                     key="##table-totals##"
-                    className="totals"
+                    className={totalClass}
                     columns={this.props.columns}
                     data={this._getTotals()}
                     isParent={false}

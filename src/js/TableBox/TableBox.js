@@ -31,7 +31,7 @@ class TableBox extends Component {
         this.getData = this.getData.bind(this);
     }
 
-    initTable(props){
+    initTable(props) {
         this.store.setProps({
             isPagination: props.pagination,
             hasParent: props.hasParent
@@ -40,7 +40,7 @@ class TableBox extends Component {
 
     getTableData() {
         let result = [];
-        const { options, pagination } = this.props;
+        const {options, pagination} = this.props;
         if (pagination) {
             let page;
             let sizePerPage;
@@ -66,9 +66,9 @@ class TableBox extends Component {
         this.store.removeListener("change", this.getData);
     }
 
-    componentWillReceiveProps(nextProps){
+    componentWillReceiveProps(nextProps) {
         this.initTable(nextProps);
-        const { options } = nextProps;
+        const {options} = nextProps;
 
         this.store.setData(nextProps.data.slice());
         let page = options.page || this.state.currPage;
@@ -88,14 +88,14 @@ class TableBox extends Component {
         });
     }
 
-    getData(){
+    getData() {
         this.setState({
             data: this.getTableData()
         })
     }
 
     collapseBody() {
-        if (this.props.onCollapse){
+        if (this.props.onCollapse) {
             this.props.onCollapse()
         } else {
             this.setState({
@@ -112,10 +112,10 @@ class TableBox extends Component {
         this.store.search(searchText);
         let result;
         if (this.props.pagination) {
-            const { sizePerPage } = this.state;
+            const {sizePerPage} = this.state;
             result = this.store.page(1, sizePerPage).get();
 
-            const { onPageChange } = this.props.options;
+            const {onPageChange} = this.props.options;
             if (onPageChange) {
                 onPageChange(1, sizePerPage);
             }
@@ -133,20 +133,20 @@ class TableBox extends Component {
         });
     }
 
-    handleRowClick(row){
+    handleRowClick(row) {
         if (this.props.selectRow.onRowClick) {
             this.props.selectRow.onRowClick(row);
         }
     }
 
-    handleTotalRowClick(){
+    handleTotalRowClick() {
         if (this.props.selectRow.onTotalRowClick) {
             this.props.selectRow.onTotalRowClick();
         }
     }
 
     handlePaginationData(page, sizePerPage) {
-        const { onPageChange } = this.props.options;
+        const {onPageChange} = this.props.options;
         if (onPageChange) {
             onPageChange(page, sizePerPage);
         } else {
@@ -173,8 +173,8 @@ class TableBox extends Component {
         });
     }
 
-    renderPagination(){
-        const { options } = this.props;
+    renderPagination() {
+        const {options} = this.props;
         const sizePerPageList = options.sizePerPageList || Const.SIZE_PER_PAGE_LIST;
         const dataSize = this.store.getDataNum();
         if (this.props.pagination && dataSize > sizePerPageList[0]) {
@@ -192,7 +192,7 @@ class TableBox extends Component {
                         paginationSize={ options.paginationSize || Const.PAGINATION_SIZE }
                         prePage={ options.prePage || Const.PRE_PAGE }
                         sizePerPage={ this.state.sizePerPage }
-                        sizePerPageList={ sizePerPageList } />
+                        sizePerPageList={ sizePerPageList }/>
                 </div>
             );
         }
@@ -229,6 +229,7 @@ class TableBox extends Component {
                     data={ this.state.data }
                     hasParent={ this.props.hasParent }
                     hasTotals={ this.props.hasTotals }
+                    hasTotalsOptions={ this.props.hasTotalsOptions }
                     hidden={this.state.isCollapsed}
                     hover={ this.props.hover }
                     isDataOnFilter={ this.store.isOnFilter }
@@ -254,6 +255,9 @@ TableBox.propTypes = {
     filterBtn: PropTypes.array,
     hasParent: PropTypes.bool,
     hasTotals: PropTypes.bool,
+    hasTotalsOptions: PropTypes.shape({
+        underline: PropTypes.bool
+    }),
     height: PropTypes.string,
     hover: PropTypes.bool,
     isCollapsed: PropTypes.bool,
@@ -293,6 +297,9 @@ TableBox.defaultProps = {
     filterBtn: [],
     hasParent: false,
     hasTotals: false,
+    hasTotalsOptions: {
+        underline: false
+    },
     height: '100%',
     hover: false,
     isCollapsed: false,

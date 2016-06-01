@@ -140,6 +140,9 @@
 .table-box table tbody tr.totals span {
     font-weight: 600;
 }
+.table-box table tbody tr.totals.total-underline td:first-child:hover {
+    text-decoration: underline
+}
 .table-box .table-body-wrapper table tbody tr.totals td,
 .table-box .table-body-wrapper table tbody tr.totals span {
     color: #7A8485;
