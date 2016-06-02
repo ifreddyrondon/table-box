@@ -2,14 +2,14 @@
  * Created by freddyrondon on 4/15/16.
  */
 
-import React, { Component, PropTypes } from 'react';
+import React, {Component, PropTypes} from 'react';
 import classSet from 'classnames';
 
 import Const from './Const'
 
 class TableHeaderColumn extends Component {
 
-    handleColumnClick(){
+    handleColumnClick() {
         if (!this.props.dataSort) return;
         const order = this.props.sort === Const.SORT_DESC ? Const.SORT_ASC : Const.SORT_DESC;
         this.props.onSort(order, this.props.dataField);
@@ -49,7 +49,7 @@ class TableHeaderColumn extends Component {
             'sort-column': this.props.dataSort
         });
         // if header has name printed
-        const title = typeof this.props.children === 'string' ? { title: this.props.children } : null;
+        const title = typeof this.props.children === 'string' ? {title: this.props.children} : null;
 
         return (
             <th ref='header-col'
@@ -64,24 +64,26 @@ class TableHeaderColumn extends Component {
 }
 
 TableHeaderColumn.propTypes = {
+    className: PropTypes.string,
     dataAlign: PropTypes.string,
     dataField: PropTypes.string,
     dataFormat: PropTypes.func,
     dataSort: PropTypes.bool,
     dataType: PropTypes.string,
-    className: PropTypes.string,
     hidden: PropTypes.bool,
+    isKey: PropTypes.bool,
     onSort: PropTypes.func,
     sort: PropTypes.string
 };
 
 TableHeaderColumn.defaultProps = {
+    className: '',
     dataAlign: 'left',
     dataFormat: undefined,
     dataSort: false,
     dataType: 'string',
-    className: '',
     hidden: false,
+    isKey: false,
     onSort: undefined,
     sort: undefined
 };

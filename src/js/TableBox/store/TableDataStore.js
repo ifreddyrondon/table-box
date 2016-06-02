@@ -3,40 +3,160 @@
  */
 
 import {EventEmitter} from 'events'
-import _ from 'lodash'
 
 
 export default class TableDataStore extends EventEmitter {
     constructor(data) {
         super();
+        this.childrenIndexList = null;
+        this.colInfos = null;
         this.data = data;
+        this.elemStateMap = {};
         this.filteredData = null;
         this.isOnFilter = false;
-        this.searchText = null;
-        this._calculateParentIndex();
         this.pageObj = {};
+        this.parentIndexList = null;
+        this.searchText = null;
+
+        if (this.data.length > 0) {
+            this._buildElemStateMap();
+            this.emit("change:elem");
+        }
     }
 
     setProps(props) {
+        this.colInfos = props.colInfos;
         this.enablePagination = props.isPagination;
+        this.keyField = props.keyField;
         this.manageParents = props.hasParent;
     }
 
     setData(data) {
-        if (!_.isEqual(this.data, data)) {
-            this.data = data;
-            this._calculateParentIndex();
-            this.emit("change");
+        if (data.length < 1) {
+            return
+        }
+        this.data = data;
+        this.emit("change");
+        this._buildElemStateMap();
+        this.emit("change:elem");
+    }
+
+    _buildElemStateMap() {
+        this.parentIndexList = [];
+        this.childrenIndexList = [];
+        for (let i = 0; i < this.data.length; i++) {
+            const key = this.getKeyFromIndex(i);
+            const isChild = this.data[i].hasOwnProperty("child");
+            if (isChild) {
+                this.childrenIndexList.push(key)
+            } else {
+                this.parentIndexList.push(key)
+            }
+
+            if (!this.elemStateMap.hasOwnProperty(key)) {
+                this.elemStateMap[key] = {
+                    isOn: true,
+                    isOnLastValue: true,
+                    shouldHide: isChild,
+                    type: isChild ? 'child' : 'parent'
+                };
+            }
+            this.elemStateMap[key].index = i;
+            this.elemStateMap[key].parentId = this.parentIndexList[this.parentIndexList.length - 1];
         }
     }
 
-    _calculateParentIndex() {
-        this.parentIndexList = [];
-        for (let i = 0; i < this.data.length; i++) {
-            if (!this.data[i].hasOwnProperty("child")) {
-                this.parentIndexList.push(i);
+    getIndexFromKey(key) {
+        return this.getElementState(key).index;
+    }
+
+    getKeyFromIndex(index) {
+        return this.data[index][this.getKeyField()];
+    }
+
+    getElementState(key) {
+        return this.elemStateMap[key]
+    }
+
+    getElementsState() {
+        return this.elemStateMap
+    }
+
+    getParentState(key) {
+        if (this.isChild(key)) {
+            return this.getElementState(this.getElementState(key).parentId)
+        }
+        return this.getElementState(key)
+    }
+
+    isChild(key) {
+        return this.elemStateMap[key].type === 'child'
+    }
+
+    showChildrenElem() {
+        for (let i = 0; i < this.childrenIndexList.length; i++) {
+            const key = this.childrenIndexList[i];
+            this.elemStateMap[key].shouldHide = false
+        }
+        this.emit("change:elem");
+    }
+
+    hideChildrenElem() {
+        for (let i = 0; i < this.childrenIndexList.length; i++) {
+            const key = this.childrenIndexList[i];
+            this.elemStateMap[key].shouldHide = true
+        }
+        this.emit("change:elem");
+    }
+
+    toggleChildrenOfParentIndex(key) {
+        const index = this.getIndexFromKey(key);
+        for (let i = +index + 1; i < this.data.length; i++) {
+            const key = this.getKeyFromIndex(i);
+            if (this.isChild(key)) {
+                this.elemStateMap[key].shouldHide = !this.elemStateMap[key].shouldHide
+            } else {
+                break;
             }
         }
+        this.emit("change:elem");
+    }
+
+    toggleSwitchTotal(totalRowIsOn) {
+        for (let i = 0; i < this.data.length; i++) {
+            const key = this.getKeyFromIndex(i);
+            if (!this.isChild(key)) {
+                this.elemStateMap[key].isOn = totalRowIsOn ? this.elemStateMap[key].isOnLastValue : false
+            } else {
+                const parent = this.getParentState(key);
+                this.elemStateMap[key].isOn = !totalRowIsOn ? false : (!parent.isOnLastValue ? false : this.elemStateMap[key].isOnLastValue)
+            }
+        }
+        this.emit("change:elem");
+    }
+
+    toggleSwitchParent(key) {
+        // update parent
+        this.elemStateMap[key].isOn = !this.elemStateMap[key].isOn;
+        this.elemStateMap[key].isOnLastValue = this.elemStateMap[key].isOn;
+
+        // update children
+        const index = this.getIndexFromKey(key);
+        for (let i = +index + 1; i < this.data.length; i++) {
+            const childKey = this.getKeyFromIndex(i);
+            if (this.isChild(childKey)) {
+                this.elemStateMap[childKey].isOn = this.elemStateMap[key].isOn ? this.elemStateMap[childKey].isOnLastValue : false
+            } else {
+                break;
+            }
+        }
+        this.emit("change:elem");
+    }
+
+    toggleSwitchChildren(key) {
+        this.elemStateMap[key].isOn = !this.elemStateMap[key].isOn;
+        this.elemStateMap[key].isOnLastValue = this.elemStateMap[key].isOn;
+        this.emit("change:elem");
     }
 
     /* General search function
@@ -47,6 +167,9 @@ export default class TableDataStore extends EventEmitter {
             this.filteredData = null;
             this.isOnFilter = false;
             this.searchText = null;
+            if (this.manageParents){
+                this.hideChildrenElem()
+            }
         } else {
             this.searchText = searchText;
             let searchTextArray = [];
@@ -76,12 +199,17 @@ export default class TableDataStore extends EventEmitter {
                 return valid;
             });
             this.isOnFilter = true;
+            if (this.manageParents){
+                this.showChildrenElem()
+            }
         }
     }
 
     getCurrentDisplayData() {
-        if (this.isOnFilter) return this.filteredData;
-        else return this.data;
+        if (this.isOnFilter) {
+            return this.filteredData;
+        }
+        return this.data;
     }
 
     page(page, sizePerPage) {
@@ -96,28 +224,30 @@ export default class TableDataStore extends EventEmitter {
 
     get() {
         const _data = this.getCurrentDisplayData();
-
         if (_data.length === 0) return _data;
 
         if (!this.enablePagination) {
             return _data;
-        } else {
-            let result = [];
-
-            let start = this.pageObj.start;
-            let end = this.pageObj.end;
-
-            if (this.manageParents && !this.isOnFilter) {
-                start = this.parentIndexList[this.pageObj.start];
-                end = this.parentIndexList[this.pageObj.end + 1] === undefined ? this.data.length - 1 : this.parentIndexList[this.pageObj.end + 1] - 1;
-            }
-
-            for (let i = start; i <= end; i++) {
-                result.push(_data[i]);
-                if (i + 1 === _data.length) break;
-            }
-            return result;
         }
+
+        let result = [];
+        let start = this.pageObj.start;
+        let end = this.pageObj.end;
+
+        if (this.manageParents && !this.isOnFilter && this.parentIndexList) {
+            start = this.getIndexFromKey(this.parentIndexList[start]);
+            end = this.parentIndexList[end + 1] === undefined ? this.data.length - 1 : this.getIndexFromKey(this.parentIndexList[end + 1]) - 1;
+        }
+
+        for (let i = start; i <= end; i++) {
+            result.push(_data[i]);
+            if (i + 1 === _data.length) break;
+        }
+        return result;
+    }
+
+    getKeyField() {
+        return this.keyField;
     }
 
     getDataNum() {

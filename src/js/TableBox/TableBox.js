@@ -32,9 +32,31 @@ class TableBox extends Component {
     }
 
     initTable(props) {
+        let keyField = null;
+        React.Children.forEach(props.children, column => {
+            if (column.props.isKey) {
+                if (keyField) {
+                    throw 'Error. Multiple key column be detected in TableHeaderColumn.';
+                }
+                keyField = column.props.dataField;
+            }
+        });
+
+        const colInfos = this.getColumnsDescription(props).reduce(( prev, curr ) => {
+            prev[curr.name] = curr;
+            return prev;
+        }, {});
+
+        if (!keyField) {
+            throw `Error. No any key column defined in TableHeaderColumn.
+            Use 'isKey={true}' to specify a unique column`;
+        }
+
         this.store.setProps({
+            colInfos: colInfos,
+            hasParent: props.hasParent,
             isPagination: props.pagination,
-            hasParent: props.hasParent
+            keyField: keyField
         });
     }
 
@@ -232,10 +254,10 @@ class TableBox extends Component {
                     hasTotalsOptions={ this.props.hasTotalsOptions }
                     hidden={this.state.isCollapsed}
                     hover={ this.props.hover }
-                    isDataOnFilter={ this.store.isOnFilter }
                     noDataText={ this.props.noDataText }
                     onRowClick={ this.handleRowClick.bind(this) }
                     onTotalRowClick={ this.handleTotalRowClick.bind(this) }
+                    store={ this.store }
                     selectRow={ this.props.selectRow }
                     striped={ this.props.striped }
                     style={ style }>

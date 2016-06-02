@@ -12,31 +12,18 @@ class TableBody extends Component {
 
     constructor() {
         super();
-    }
 
-    _setRowState(rows) {
-        // set the state for each row
-        var parentId = null;
-        rows.forEach((data, i) => {
-            const isChild = data['child'] || false;
-            if (!isChild) {
-                parentId = i;
-            }
+        this.state = {
+            elementsState: {}
+        };
 
-            this.setState({
-                ['row-' + i]: {
-                    type: isChild ? 'child' : 'parent',
-                    parentId: parentId,
-                    shouldHide: isChild,
-                    isOn: true,
-                    isOnLastValue: true
-                }
-            });
-        });
+        this.getElementsState = this.getElementsState.bind(this)
     }
 
     componentWillMount() {
-        this._setRowState(this.props.data);
+        this.store = this.props.store;
+        this.store.on("change:elem", this.getElementsState);
+        this.getElementsState();
 
         // set total row state
         if (this.props.hasTotals) {
@@ -55,50 +42,14 @@ class TableBody extends Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.data.length !== nextProps.data.length) {
-            this._setRowState(nextProps.data);
-        }
-
-        if (this._isSelectRowDefined()) {
-            return
-        }
-
-        if (nextProps.isDataOnFilter) {
-            this._showAllRows()
-        } else {
-            this._hideChildren()
-        }
+    componentWillUnmount() {
+        this.store.removeListener("change:elem", this.getElementsState);
     }
 
-    _showAllRows() {
-        for (let i = 0; i < this.props.data.length; i++) {
-            this.setState({
-                ['row-' + i]: {
-                    type: this.state['row-' + i].type,
-                    shouldHide: false,
-                    isOn: this.state['row-' + i].isOn,
-                    isOnLastValue: this.state['row-' + i].isOnLastValue,
-                    parentId: this.state['row-' + i].parentId
-                }
-            });
-        }
-    }
-
-    _hideChildren() {
-        for (let i = 0; i < this.props.data.length; i++) {
-            if (this.state['row-' + i].type === "child") {
-                this.setState({
-                    ['row-' + i]: {
-                        type: this.state['row-' + i].type,
-                        shouldHide: true,
-                        isOn: this.state['row-' + i].isOn,
-                        isOnLastValue: this.state['row-' + i].isOnLastValue,
-                        parentId: this.state['row-' + i].parentId
-                    }
-                });
-            }
-        }
+    getElementsState(){
+        this.setState({
+            elementsState: this.store.getElementsState()
+        })
     }
 
     renderTableHeader() {
@@ -118,37 +69,39 @@ class TableBody extends Component {
 
     _getTotals() {
         let totalRow = {};
-        this.props.columns.forEach((item, i) => {
-            if (i === 0) {
-                totalRow[item.name] = 'TOTALS'
-            } else {
-                if (item.type === "number" || item.type === "p_l" || item.type === "currency") {
-                    totalRow[item.name] = 0
-                } else if (item.type === "plot") {
-                    totalRow[item.name] = []
-                }
+        totalRow[this.props.columns[0].name] = 'TOTALS';
+        for (let i = 1; i < this.props.columns.length; i++) {
+            const item = this.props.columns[i];
+            if (item.type === "number" || item.type === "p_l" || item.type === "currency") {
+                totalRow[item.name] = 0
+            } else if (item.type === "plot") {
+                totalRow[item.name] = []
             }
-        });
+        }
 
-        this.props.data.forEach((item) => {
-            if (item['child'] === undefined || item['child'] === false) {
-                this.props.columns.forEach((colItem, i) => {
-                    if (i > 0 && totalRow.hasOwnProperty(colItem.name)) {
-                        if (typeof item[colItem.name] === "number") {
-                            totalRow[colItem.name] += item[colItem.name];
-                        } else if (typeof item[colItem.name] === "object") {
-                            if (totalRow[colItem.name].length === 0) {
-                                totalRow[colItem.name] = item[colItem.name]
-                            } else {
-                                totalRow[colItem.name] = totalRow[colItem.name].map(function (num, idx) {
-                                    return num + item[colItem.name][idx];
-                                });
-                            }
+        for (let i = 0; i < this.props.data.length; i++) {
+            const item = this.props.data[i];
+            const key = this.store.getKeyFromIndex(i);
+            if (!this.store.isChild(key)) {
+                for (let j = 1; j < this.props.columns.length; j++) {
+                    const colItem = this.props.columns[j];
+                    if (!totalRow.hasOwnProperty(colItem.name)) {
+                        continue
+                    }
+                    if (typeof item[colItem.name] === "number") {
+                        totalRow[colItem.name] += item[colItem.name];
+                    } else if (typeof item[colItem.name] === "object") {
+                        if (totalRow[colItem.name].length === 0) {
+                            totalRow[colItem.name] = item[colItem.name]
+                        } else {
+                            totalRow[colItem.name] = totalRow[colItem.name].map(function (num, idx) {
+                                return num + item[colItem.name][idx];
+                            });
                         }
                     }
-                });
+                }
             }
-        });
+        }
 
         return totalRow
     }
@@ -178,22 +131,9 @@ class TableBody extends Component {
         return ''
     }
 
-    handleToggleParent(key) {
-        for (let i = +key + 1; i < this.props.data.length; i++) {
-            if (this.state['row-' + i].type === 'child') {
-                this.setState({
-                    ['row-' + i]: {
-                        type: this.state['row-' + i].type,
-                        shouldHide: !this.state['row-' + i].shouldHide,
-                        isOn: this.state['row-' + i].isOn,
-                        isOnLastValue: this.state['row-' + i].isOnLastValue,
-                        parentId: this.state['row-' + i].parentId
-                    }
-                });
-            } else {
-                break;
-            }
-        }
+    handleToggleParent(index) {
+        const key = this.store.getKeyFromIndex(index);
+        this.store.toggleChildrenOfParentIndex(key)
     }
 
     handleSwitchTotal() {
@@ -203,101 +143,37 @@ class TableBody extends Component {
                 isOn: !this.state['row-total'].isOn
             }
         }, () => {
-            // update children
-            for (let i = 0; i < this.props.data.length; i++) {
-                if (this.state['row-' + i].type === 'parent') {
-                    this.setState({
-                        ['row-' + i]: {
-                            type: this.state['row-' + i].type,
-                            shouldHide: this.state['row-' + i].shouldHide,
-                            isOn: this.state['row-total'].isOn ? this.state['row-' + i].isOnLastValue : false,
-                            isOnLastValue: this.state['row-' + i].isOnLastValue,
-                            parentId: this.state['row-' + i].parentId
-                        }
-                    });
-                }
-                else if (this.state['row-' + i].type === 'child') {
-                    const parent = this.state['row-' + this.state['row-' + i].parentId];
-                    this.setState({
-                        ['row-' + i]: {
-                            type: this.state['row-' + i].type,
-                            shouldHide: this.state['row-' + i].shouldHide,
-                            isOn: !this.state['row-total'].isOn ? false : (!parent.isOnLastValue ? false : this.state['row-' + i].isOnLastValue),
-                            isOnLastValue: this.state['row-' + i].isOnLastValue,
-                            parentId: this.state['row-' + i].parentId
-                        }
-                    });
-                }
-            }
+            this.store.toggleSwitchTotal(this.state['row-total'].isOn)
         });
     }
 
-    _toggleParentSwitch(key) {
-        const isTotalOn = this.props.hasTotals ? this.state['row-total'].isOn : true;
-
-        // update parent
-        this.setState({
-            ['row-' + key]: {
-                type: this.state['row-' + key].type,
-                shouldHide: this.state['row-' + key].shouldHide,
-                isOn: isTotalOn ? !this.state['row-' + key].isOn : false,
-                isOnLastValue: isTotalOn ? !this.state['row-' + key].isOn : this.state['row-' + key].isOnLastValue,
-                parentId: this.state['row-' + key].parentId
-            }
-        });
-
-        // update children
-        for (let i = +key + 1; i < this.props.data.length; i++) {
-            if (this.state['row-' + i].type === 'child') {
-                this.setState({
-                    ['row-' + i]: {
-                        type: this.state['row-' + i].type,
-                        shouldHide: this.state['row-' + i].shouldHide,
-                        isOn: !this.state['row-' + key].isOn ? this.state['row-' + i].isOnLastValue : false,
-                        isOnLastValue: this.state['row-' + i].isOnLastValue,
-                        parentId: this.state['row-' + i].parentId
-                    }
-                });
-            } else {
-                break;
-            }
-        }
-    }
-
-    handleSwitchParent(key) {
+    handleSwitchParent(index) {
         // check if total and if total is ON
         if ((this.props.hasTotals && !this.state['row-total'].isOn)) {
             return false;
         }
-
+        const key = this.store.getKeyFromIndex(index);
         // if switch is not parent, don't do nothing
-        if (this.state['row-' + key].type === 'child') {
+        if (this.store.isChild(key)) {
             return false
         }
 
-        this._toggleParentSwitch(key)
+        this.store.toggleSwitchParent(key)
     }
 
-    handleSwitchChildren(key) {
-        const row = this.state['row-' + key];
-        if (row.type !== 'child') {
-            return false;
+    handleSwitchChildren(index) {
+        const key = this.store.getKeyFromIndex(index);
+
+        if (!this.store.isChild(key)) {
+            return false
         }
 
         // check if parent is ON
-        if (!this.state['row-' + row.parentId].isOn) {
+        if (!this.store.getParentState(key).isOn) {
             return false;
         }
 
-        this.setState({
-            ['row-' + key]: {
-                type: this.state['row-' + key].type,
-                shouldHide: this.state['row-' + key].shouldHide,
-                isOn: !this.state['row-' + key].isOn,
-                isOnLastValue: !this.state['row-' + key].isOn,
-                parentId: this.state['row-' + key].parentId
-            }
-        });
+        this.store.toggleSwitchChildren(key)
     }
 
     _attachClearSortCaretFunc() {
@@ -313,14 +189,6 @@ class TableBody extends Component {
     handleSort(order, sortField) {
         console.log(order);
         console.log(sortField);
-        // if (this.props.options.onSortChange) {
-        //     this.props.options.onSortChange(sortField, order, this.props);
-        // }
-        //
-        // const result = this.store.sort(order, sortField).get();
-        // this.setState({
-        //     data: result
-        // });
     }
 
     handleRowClick(rowIndex) {
@@ -368,6 +236,8 @@ class TableBody extends Component {
             });
 
             const selected = isSelectRowDefined && this.state.rowSelected == i;
+            const key = this.store.getKeyFromIndex(i);
+            const elementsState = this.state.elementsState[key];
 
             return (
                 <TableRow
@@ -377,9 +247,9 @@ class TableBody extends Component {
                     columns={this.props.columns}
                     data={data}
                     isParent={isParent}
-                    shouldHide={this.state['row-' + i].shouldHide}
+                    shouldHide={elementsState.shouldHide}
                     handleToggleParent={this.handleToggleParent.bind(this)}
-                    isOn={this.state['row-' + i].isOn}
+                    isOn={elementsState.isOn}
                     handleSwitchParent={this.handleSwitchParent.bind(this)}
                     handleSwitchChildren={this.handleSwitchChildren.bind(this)}
                     onRowClick={ this.handleRowClick.bind(this) }
