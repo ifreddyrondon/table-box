@@ -46,6 +46,9 @@ export default class TableDataStore extends EventEmitter {
         this.childrenIndexList = [];
         for (let i = 0; i < this.data.length; i++) {
             const key = this.getKeyFromIndex(i);
+            if (key === undefined){
+                continue
+            }
             const isChild = this.data[i].hasOwnProperty("child");
             if (isChild) {
                 this.childrenIndexList.push(key)
@@ -66,7 +69,14 @@ export default class TableDataStore extends EventEmitter {
         }
     }
 
+    isElementsMapEmpty(){
+        return Object.keys(this.elemStateMap).length === 0 && this.elemStateMap.constructor === Object
+    }
+
     getIndexFromKey(key) {
+        if(this.isElementsMapEmpty()){
+            return
+        }
         return this.getElementState(key).index;
     }
 
@@ -90,6 +100,9 @@ export default class TableDataStore extends EventEmitter {
     }
 
     isChild(key) {
+        if(this.isElementsMapEmpty()){
+            return
+        }
         return this.elemStateMap[key].type === 'child'
     }
 

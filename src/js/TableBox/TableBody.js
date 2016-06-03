@@ -226,36 +226,39 @@ class TableBody extends Component {
         const tableHeader = this.renderTableHeader();
         const tableTotals = this.renderTableTotals();
 
-        const tableRows = this.props.data.map((data, i) => {
-            // check if parent or child
-            const isChild = data['child'] || false;
-            const isParent = !isChild && this.props.hasParent;
-            const trClassName = classSet({
-                'child': isChild,
-                'parent': isParent
+        let tableRows = [];
+        if (!this.store.isElementsMapEmpty()){
+            tableRows = this.props.data.map((data, i) => {
+                // check if parent or child
+                const isChild = data['child'] || false;
+                const isParent = !isChild && this.props.hasParent;
+                const trClassName = classSet({
+                    'child': isChild,
+                    'parent': isParent
+                });
+
+                const selected = isSelectRowDefined && this.state.rowSelected == i;
+                const key = this.store.getKeyFromIndex(i);
+                const elementsState = this.state.elementsState[key];
+
+                return (
+                    <TableRow
+                        key={ i }
+                        _key={ i }
+                        className={ trClassName }
+                        columns={this.props.columns}
+                        data={data}
+                        isParent={isParent}
+                        shouldHide={elementsState.shouldHide}
+                        handleToggleParent={this.handleToggleParent.bind(this)}
+                        isOn={elementsState.isOn}
+                        handleSwitchParent={this.handleSwitchParent.bind(this)}
+                        handleSwitchChildren={this.handleSwitchChildren.bind(this)}
+                        onRowClick={ this.handleRowClick.bind(this) }
+                        selected={selected}/>
+                )
             });
-
-            const selected = isSelectRowDefined && this.state.rowSelected == i;
-            const key = this.store.getKeyFromIndex(i);
-            const elementsState = this.state.elementsState[key];
-
-            return (
-                <TableRow
-                    key={ i }
-                    _key={ i }
-                    className={ trClassName }
-                    columns={this.props.columns}
-                    data={data}
-                    isParent={isParent}
-                    shouldHide={elementsState.shouldHide}
-                    handleToggleParent={this.handleToggleParent.bind(this)}
-                    isOn={elementsState.isOn}
-                    handleSwitchParent={this.handleSwitchParent.bind(this)}
-                    handleSwitchChildren={this.handleSwitchChildren.bind(this)}
-                    onRowClick={ this.handleRowClick.bind(this) }
-                    selected={selected}/>
-            )
-        });
+        }
 
         if (tableRows.length === 0) {
             tableRows.push(
