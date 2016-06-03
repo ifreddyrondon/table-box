@@ -16,12 +16,9 @@ export default class TableDataStore extends EventEmitter {
         this.isOnFilter = false;
         this.pageObj = {};
         this.parentIndexList = null;
-        this.searchText = null;
 
-        if (this.data.length > 0) {
-            this._buildElemStateMap();
-            this.emit("change:elem");
-        }
+        this._buildElemStateMap();
+        this.emit("change:elem");
     }
 
     setProps(props) {
@@ -32,12 +29,9 @@ export default class TableDataStore extends EventEmitter {
     }
 
     setData(data) {
-        if (data.length < 1) {
-            return
-        }
         this.data = data;
-        this.emit("change");
         this._buildElemStateMap();
+        this.emit("change");
         this.emit("change:elem");
     }
 
@@ -179,12 +173,10 @@ export default class TableDataStore extends EventEmitter {
         if (searchText.trim() === '') {
             this.filteredData = null;
             this.isOnFilter = false;
-            this.searchText = null;
             if (this.manageParents){
                 this.hideChildrenElem()
             }
         } else {
-            this.searchText = searchText;
             let searchTextArray = [];
 
             searchTextArray.push(searchText);
