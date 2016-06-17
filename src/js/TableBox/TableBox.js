@@ -2,7 +2,8 @@
  * Created by freddyrondon on 4/15/16.
  */
 
-import React, {Component, PropTypes} from 'react';
+import React, {Component, PropTypes} from 'react'
+import classSet from 'classnames'
 
 import './../../css/table-box.css';
 
@@ -230,8 +231,10 @@ class TableBox extends Component {
             maxHeight: this.props.maxHeight
         };
 
+        const tableBoxClasses = classSet("table-box", this.props.bsStyle);
+
         return (
-            <div className="table-box">
+            <div className={tableBoxClasses}>
                 <TableHeader
                     title={ this.props.title }
                     handleCollapse={this.collapseBody.bind(this)}
@@ -270,6 +273,7 @@ class TableBox extends Component {
 }
 
 TableBox.propTypes = {
+    bsStyle: PropTypes.string,
     bordered: PropTypes.bool,
     condensed: PropTypes.bool,
     data: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
@@ -313,6 +317,7 @@ TableBox.propTypes = {
 };
 
 TableBox.defaultProps = {
+    bsStyle: "",
     bordered: true,
     condensed: false,
     filter: false,
