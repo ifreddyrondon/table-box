@@ -6,7 +6,7 @@ import {EventEmitter} from 'events'
 
 
 export default class TableDataStore extends EventEmitter {
-    constructor(data) {
+    constructor(data, keyField) {
         super();
         this.childrenIndexList = null;
         this.colInfos = null;
@@ -14,6 +14,7 @@ export default class TableDataStore extends EventEmitter {
         this.elemStateMap = {};
         this.filteredData = null;
         this.isOnFilter = false;
+        this.keyField = keyField;
         this.pageObj = {};
         this.parentIndexList = null;
 
@@ -24,7 +25,6 @@ export default class TableDataStore extends EventEmitter {
     setProps(props) {
         this.colInfos = props.colInfos;
         this.enablePagination = props.isPagination;
-        this.keyField = props.keyField;
         this.manageParents = props.hasParent;
     }
 
@@ -40,7 +40,7 @@ export default class TableDataStore extends EventEmitter {
         this.childrenIndexList = [];
         for (let i = 0; i < this.data.length; i++) {
             const key = this.getKeyFromIndex(i);
-            if (key === undefined){
+            if (key === undefined) {
                 continue
             }
             const isChild = this.data[i].hasOwnProperty("child");
@@ -63,12 +63,12 @@ export default class TableDataStore extends EventEmitter {
         }
     }
 
-    isElementsMapEmpty(){
+    isElementsMapEmpty() {
         return Object.keys(this.elemStateMap).length === 0 && this.elemStateMap.constructor === Object
     }
 
     getIndexFromKey(key) {
-        if(this.isElementsMapEmpty()){
+        if (this.isElementsMapEmpty()) {
             return
         }
         return this.getElementState(key).index;
@@ -94,7 +94,7 @@ export default class TableDataStore extends EventEmitter {
     }
 
     isChild(key) {
-        if(this.isElementsMapEmpty()){
+        if (this.isElementsMapEmpty()) {
             return
         }
         return this.elemStateMap[key].type === 'child'
@@ -173,7 +173,7 @@ export default class TableDataStore extends EventEmitter {
         if (searchText.trim() === '') {
             this.filteredData = null;
             this.isOnFilter = false;
-            if (this.manageParents){
+            if (this.manageParents) {
                 this.hideChildrenElem()
             }
         } else {
@@ -204,7 +204,7 @@ export default class TableDataStore extends EventEmitter {
                 return valid;
             });
             this.isOnFilter = true;
-            if (this.manageParents){
+            if (this.manageParents) {
                 this.showChildrenElem()
             }
         }

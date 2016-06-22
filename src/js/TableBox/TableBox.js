@@ -18,8 +18,22 @@ class TableBox extends Component {
 
     constructor(props) {
         super(props);
-        this.store = new TableDataStore(this.props.data.slice());
 
+        // get key field
+        let keyField = null;
+        React.Children.forEach(props.children, column => {
+            if (column.props.isKey) {
+                if (keyField) {
+                    throw 'Error. Multiple key column be detected in TableHeaderColumn.';
+                }
+                keyField = column.props.dataField;
+            }
+        });
+        if (!keyField) {
+            throw `Error. No any key column defined in TableHeaderColumn.
+            Use 'isKey={true}' to specify a unique column`;
+        }
+        this.store = new TableDataStore(this.props.data.slice(), keyField);
         this.initTable(this.props);
 
         this.state = {
@@ -33,31 +47,15 @@ class TableBox extends Component {
     }
 
     initTable(props) {
-        let keyField = null;
-        React.Children.forEach(props.children, column => {
-            if (column.props.isKey) {
-                if (keyField) {
-                    throw 'Error. Multiple key column be detected in TableHeaderColumn.';
-                }
-                keyField = column.props.dataField;
-            }
-        });
-
-        const colInfos = this.getColumnsDescription(props).reduce(( prev, curr ) => {
+        const colInfos = this.getColumnsDescription(props).reduce((prev, curr) => {
             prev[curr.name] = curr;
             return prev;
         }, {});
 
-        if (!keyField) {
-            throw `Error. No any key column defined in TableHeaderColumn.
-            Use 'isKey={true}' to specify a unique column`;
-        }
-
         this.store.setProps({
             colInfos: colInfos,
             hasParent: props.hasParent,
-            isPagination: props.pagination,
-            keyField: keyField
+            isPagination: props.pagination
         });
     }
 
