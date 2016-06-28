@@ -2,12 +2,14 @@
  * Created by freddyrondon on 4/17/16.
  */
 
-import React, {Component, PropTypes} from 'react';
-import {Sparklines, SparklinesLine, SparklinesSpots} from 'react-sparklines';
-import ReactHighstock from 'react-highcharts';
-import {Modal} from 'react-bootstrap';
+import React, {Component, PropTypes} from 'react'
+import {Sparklines, SparklinesLine, SparklinesSpots} from 'react-sparklines'
+import ReactHighstock from 'react-highcharts'
+import {Modal} from 'react-bootstrap'
+import _ from 'lodash'
 import Moment from 'moment'
 import classSet from 'classnames'
+
 
 class TableCell extends Component {
 
@@ -34,43 +36,93 @@ class TableCell extends Component {
         this.props.handleRowActivation();
     }
 
+    /**
+     *
+     * @param value
+     * @param decimals
+     * @returns {number}
+     */
+    getFixedDecimals(value, decimals = 2) {
+        value = +value;
+        return Number(value.toFixed(decimals))
+    }
+
+    /**
+     *
+     * @param value
+     * @returns {string}
+     */
+    getNumberWithSeparators(value) {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    /**
+     *
+     * @param value
+     * @returns {string}
+     */
+    getOnlyDecimalPartFormat(value) {
+        value = +value;
+        return "." + (value + "").split(".")[1]
+    }
+
+    /**
+     *
+     * @param value
+     * @returns {*}
+     */
+    getGreenOrRedNumbersFormat(value) {
+        if (isNaN(value)) {
+            return ''
+        }
+        if (!_.isInteger(value)) {
+            value = this.getFixedDecimals(value);
+        }
+        const formattedValue = this.getNumberWithSeparators(value);
+        const classes = classSet('fa', {
+            'winning': value >= 0,
+            'losing': value < 0
+        });
+        return <span className={classes}>{formattedValue}</span>
+    }
+
     renderCellValue(value, type) {
-        if (type === "number" || type === "currency") {
-            value = +value;
-            if (Number.isNaN(value)){
-                value = ""
-            } else {
-                if (value < 1 && value > 0){
-                    value = "." + (value + "").split(".")[1];
-                } else {
-                    value = value.toFixed(2)
+        if (type === "number") {
+            if (Number.isNaN(value) || value === undefined) {
+                return ""
+            }
+            if (!_.isInteger(value)) {
+                value = this.getFixedDecimals(value);
+                if (value < 1 && value > 0) {
+                    value = this.getOnlyDecimalPartFormat(value);
                 }
-                value = value.replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
             }
+            return this.getNumberWithSeparators(value);
         }
+
         if (type === "date") {
-            value = Moment(value).format()
+            return Moment(value).format()
         }
+
         if (type === "currency") {
-            if (value === ""){
-                value = ""
-            } else {
-                value = '<i class="fa fa-usd"></i>' + value;
-                value = <div dangerouslySetInnerHTML={ { __html: value } }></div>
+            if (Number.isNaN(value) || value === undefined) {
+                return ""
             }
+            if (!_.isInteger(value)) {
+                value = this.getFixedDecimals(value);
+                if (value < 1 && value > 0) {
+                    value = this.getOnlyDecimalPartFormat(value);
+                }
+            }
+
+            value = '<i class="fa fa-usd"></i>' + this.getNumberWithSeparators(value);
+            return <div dangerouslySetInnerHTML={ { __html: value } }></div>
         }
+
         if (type === "p_l") {
-            let classes = '';
-            if (!isNaN(value)) {
-                value = value.toFixed(0).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');
-                classes = classSet('fa', {
-                    'winning': value >= 0,
-                    'losing': value < 0
-                });
-                value = (value >= 0 ? '+' : '') + value;
-            }
-            value = <span className={classes}>{value}</span>;
+            return this.getGreenOrRedNumbersFormat(value)
         }
+
         if (type === "switch") {
             const classes = classSet('fa', {
                 'fa-toggle-on': this.props.isRowOn,
@@ -79,12 +131,12 @@ class TableCell extends Component {
             const classesLink = classSet('switch-link', {
                 'on': this.props.isRowOn
             });
-            value = <a className={classesLink} onClick={this.changeSwitch.bind(this)}>
+            return <a className={classesLink} onClick={this.changeSwitch.bind(this)}>
                 <i className={classes}></i>
             </a>
         }
-        if (type === "plot") {
 
+        if (type === "plot") {
             const config = {
                 rangeSelector: {
                     selected: 1
@@ -108,7 +160,7 @@ class TableCell extends Component {
                 }]
             };
 
-            value =
+            return (
                 <a onClick={this.openChartModal.bind(this)}>
                     <Sparklines data={value} width={100} height={20} limit={20}>
                         <SparklinesLine style={{ strokeWidth: 1, stroke: "#336aff", fill: "none" }}/>
@@ -124,6 +176,7 @@ class TableCell extends Component {
                         </Modal.Body>
                     </Modal>
                 </a>
+            )
         }
 
         if (this.props.renderOpenCloseSwitch) {
@@ -134,11 +187,14 @@ class TableCell extends Component {
             const classesLink = classSet('open-close-parent', {
                 'open': this.props.isRowOpen
             });
-            value = <a className={classesLink} onClick={this.changeChevron.bind(this)}>
-                <i className={classes}></i> {value}
-            </a>
+            return (
+                <a className={classesLink} onClick={this.changeChevron.bind(this)}>
+                    <i className={classes}></i> {value}
+                </a>
+            )
         }
-        return value;
+
+        return value
     }
 
     render() {
