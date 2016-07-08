@@ -8,6 +8,12 @@ import classSet from 'classnames'
 import TableRow from './TableRow'
 import Const from './Const'
 
+
+const isFun = function (obj) {
+    return obj && (typeof obj === 'function');
+};
+
+
 class TableBody extends Component {
 
     constructor() {
@@ -46,7 +52,7 @@ class TableBody extends Component {
         this.store.removeListener("change:elem", this.getElementsState);
     }
 
-    getElementsState(){
+    getElementsState() {
         this.setState({
             elementsState: this.store.getElementsState()
         })
@@ -227,12 +233,18 @@ class TableBody extends Component {
         const tableTotals = this.renderTableTotals();
 
         let tableRows = [];
-        if (!this.store.isElementsMapEmpty()){
+        if (!this.store.isElementsMapEmpty()) {
             tableRows = this.props.data.map((data, i) => {
                 // check if parent or child
                 const isChild = data['child'] || false;
                 const isParent = !isChild && this.props.hasParent;
-                const trClassName = classSet({
+
+                let trClassName = this.props.trClassName;
+                if (isFun(this.props.trClassName)) {
+                    trClassName = this.props.trClassName(data, i);
+                }
+
+                trClassName = classSet(trClassName, {
                     'child': isChild,
                     'parent': isParent
                 });

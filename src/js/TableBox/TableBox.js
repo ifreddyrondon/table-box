@@ -261,7 +261,8 @@ class TableBox extends Component {
                     store={ this.store }
                     selectRow={ this.props.selectRow }
                     striped={ this.props.striped }
-                    style={ style }>
+                    style={ style }
+                    trClassName={ this.props.trClassName }>
                     { this.props.children }
                 </TableBody>
                 { pagination }
@@ -311,7 +312,8 @@ TableBox.propTypes = {
         selected: PropTypes.number
     }),
     striped: PropTypes.bool,
-    title: PropTypes.string
+    title: PropTypes.string,
+    trClassName: PropTypes.any
 };
 
 TableBox.defaultProps = {
@@ -353,7 +355,8 @@ TableBox.defaultProps = {
         onTotalRowClick: undefined
     },
     striped: false,
-    title: ''
+    title: '',
+    trClassName: ''
 };
 
 export default TableBox
